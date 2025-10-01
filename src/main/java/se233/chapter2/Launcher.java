@@ -74,4 +74,8 @@ public class Launcher extends Application {
     public static void setBase(String base) {
         Launcher.base = base;
     }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
 }

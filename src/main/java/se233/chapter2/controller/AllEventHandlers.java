@@ -4,6 +4,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TextInputDialog;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import se233.chapter2.Launcher;
 import se233.chapter2.model.Currency;
 import se233.chapter2.model.CurrencyEntity;
@@ -15,6 +17,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.UnaryOperator;
 
 public class AllEventHandlers {
+    private static final Logger logger = LogManager.getLogger(AllEventHandlers.class);
+
     public static void onRefresh() {
         try {
             Launcher.refreshPane();
@@ -88,6 +92,7 @@ public class AllEventHandlers {
                 if (currencyList.contains(c)) {
                     Alert alert = new Alert(Alert.AlertType.NONE, String.format("Currency already exists with this code: %s", c.getShortCode()), ButtonType.OK);
                     alert.showAndWait();
+                    logger.warn("Attempted to add duplicate currency: {}", c.getShortCode());
                     return;
                 }
                 List<CurrencyEntity> cList = FetchData.fetchRange(Launcher.getBase(), c.getShortCode(), Launcher.getN());
@@ -96,10 +101,13 @@ public class AllEventHandlers {
                 currencyList.add(c);
                 Launcher.setCurrencyList(currencyList);
                 Launcher.refreshPane();
+                logger.info("Added currency: {} (current rate: {})", c.getShortCode(), c.getCurrent() != null ? c.getCurrent().getRate() : "n/a");
             }
         } catch (InterruptedException | ExecutionException e) {
+            logger.error("Error while adding currency (thread/exec issue)", e);
             e.printStackTrace();
         } catch (Exception e) {
+            logger.error("Invalid currency code input while adding", e);
             Alert alert = new Alert(Alert.AlertType.NONE, e.getMessage(), new ButtonType("Try again"));
             alert.setTitle("Invalid Currency Code");
             alert.showAndWait();
@@ -121,8 +129,12 @@ public class AllEventHandlers {
                 currencyList.remove(index);
                 Launcher.setCurrencyList(currencyList);
                 Launcher.refreshPane();
+                logger.info("Deleted currency: {}", code);
+            } else {
+                logger.warn("Attempted to delete non-existing currency: {}", code);
             }
         } catch (ExecutionException | InterruptedException e) {
+            logger.error("Error while deleting currency: {}", code, e);
             e.printStackTrace();
         }
     }

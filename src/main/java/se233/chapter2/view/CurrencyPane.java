@@ -36,11 +36,18 @@ public class CurrencyPane extends BorderPane {
         FutureTask<VBox> drawGraphTask = new FutureTask<VBox>(new DrawGraphTask(currency));
         FutureTask<Pane> drawTopAreaTask = new FutureTask<Pane>(new DrawTopAreaTask(currency));
 
+        System.out.println("Creating ExecutorService for currency: " + currency.getShortCode());
         try (ExecutorService executor = Executors.newSingleThreadExecutor();) {
+            System.out.println("ExecutorService created and running");
             executor.execute(drawCurrencyInfoTask);
+            System.out.println("Task submitted: DrawCurrencyInfoTask");
             executor.execute(drawGraphTask);
+            System.out.println("Task submitted: DrawGraphTask");
             executor.execute(drawTopAreaTask);
+            System.out.println("Task submitted: DrawTopAreaTask");
+            System.out.println("All tasks submitted to ExecutorService");
         }
+        System.out.println("ExecutorService shutdown successfully");
         VBox currencyGraph = (VBox) drawGraphTask.get();
         Pane topArea = (Pane) drawTopAreaTask.get();
         Pane currencyInfo = (Pane) drawCurrencyInfoTask.get();
